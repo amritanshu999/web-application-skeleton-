@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Indigo – Login</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a0533 0%, #3b0f6e 50%, #6b21a8 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 48px 44px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo .plane {
+      font-size: 40px;
+    }
+
+    .logo h1 {
+      color: #fff;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-top: 8px;
+    }
+
+    .logo p {
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 28px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: #7c3aed;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(124,58,237,0.5);
+    }
+
+    /* Forms */
+    .form-section { display: none; }
+    .form-section.active { display: block; }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      color: rgba(255,255,255,0.75);
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    input::placeholder { color: rgba(255,255,255,0.35); }
+
+    input:focus {
+      border-color: #7c3aed;
+      background: rgba(124,58,237,0.15);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
+      letter-spacing: 0.5px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.9; }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* Alert */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-top: 16px;
+      display: none;
+    }
+
+    .alert.success {
+      background: rgba(34,197,94,0.2);
+      border: 1px solid rgba(34,197,94,0.4);
+      color: #86efac;
+      display: block;
+    }
+
+    .alert.error {
+      background: rgba(239,68,68,0.2);
+      border: 1px solid rgba(239,68,68,0.4);
+      color: #fca5a5;
+      display: block;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin: 24px 0;
+    }
+
+    .footer-note {
+      text-align: center;
+      color: rgba(255,255,255,0.35);
+      font-size: 12px;
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="plane">✈️</div>
+      <h1>INDIGO</h1>
+      <p>Identity &amp; Booking Service</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+      <button class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-section active" id="login-section">
+      <div class="form-group">
+        <label for="login-email">Email Address</label>
+        <input type="email" id="login-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter your password" />
+      </div>
+      <button class="btn" id="login-btn" onclick="doLogin()">Login</button>
+      <div class="alert" id="login-alert"></div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="form-section" id="register-section">
+      <div class="form-group">
+        <label for="reg-name">Full Name</label>
+        <input type="text" id="reg-name" placeholder="John Doe" />
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Email Address</label>
+        <input type="email" id="reg-email" placeholder="you@example.com" />
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <input type="password" id="reg-password" placeholder="Create a password" />
+      </div>
+      <button class="btn" id="register-btn" onclick="doRegister()">Create Account</button>
+      <div class="alert" id="register-alert"></div>
+    </div>
+
+    <hr class="divider" />
+    <p class="footer-note">© 2025 Indigo Airlines · Identity Service</p>
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+      document.querySelector(`#${tab}-section`).classList.add('active');
+      event.currentTarget.classList.add('active');
+      clearAlerts();
+    }
+
+    function clearAlerts() {
+      document.querySelectorAll('.alert').forEach(a => {
+        a.className = 'alert';
+        a.textContent = '';
+      });
+    }
+
+    function showAlert(id, type, msg) {
+      const el = document.getElementById(id);
+      el.className = `alert ${type}`;
+      el.textContent = msg;
+    }
+
+    const API_BASE = 'http://localhost:5000';
+
+    async function doLogin() {
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!email || !password) {
+        showAlert('login-alert', 'error', 'Please fill in all fields.');
+        return;
+      }
+
+      const btn = document.getElementById('login-btn');
+      btn.disabled = true;
+      btn.textContent = 'Logging in…';
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          localStorage.setItem('user', JSON.stringify({ name: data.message.replace('Welcome back, ','').replace('!',''), email: email, userId: data.userId }));
+          window.location.href = '/dashboard.html';
+        } else {
+          showAlert('login-alert', 'error', data.message || 'Invalid credentials.');
+        }
+      } catch (err) {
+        showAlert('login-alert', 'error', 'Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Login';
+      }
+    }
+
+    async function doRegister() {
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+
+      if (!name || !email || !password) {
+        showAlert('register-alert', 'error', 'Please fill in all fields.');
+        return;
+      }
+
+      const btn = document.getElementById('register-btn');
+      btn.disabled = true;
+      btn.textContent = 'Creating account…';
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          showAlert('register-alert', 'success', `✓ ${data.message}`);
+        } else {
+          showAlert('register-alert', 'error', data.message || 'Registration failed.');
+        }
+      } catch (err) {
+        showAlert('register-alert', 'error', 'Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+      }
+    }
+
+    // Allow Enter key to submit
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const loginActive = document.getElementById('login-section').classList.contains('active');
+      if (loginActive) doLogin(); else doRegister();
+    });
+  </script>
+</body>
+</html>

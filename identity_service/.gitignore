@@ -1,0 +1,63 @@
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.so
+*.dylib
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# User-specific files
+*.user
+*.userprefs
+*.suo
+*.sln.docstates
+
+# Build machine specific files
+*.obj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.scc
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Rider
+.idea/
+*.sln.iml
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Node modules (if used for frontend)
+node_modules/
+npm-debug.log

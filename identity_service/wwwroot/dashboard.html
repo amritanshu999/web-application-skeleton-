@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IndiGo – Dashboard</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Tahoma,sans-serif;background:#0f0320;color:#fff;min-height:100vh}
+    nav{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.1);padding:0 32px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100}
+    .nav-logo{font-size:20px;font-weight:800;letter-spacing:2px;color:#a855f7}
+    .nav-tabs{display:flex;gap:4px}
+    .nav-tab{padding:8px 18px;border:none;background:transparent;color:rgba(255,255,255,0.55);font-size:13px;font-weight:600;border-radius:8px;cursor:pointer;transition:all .2s}
+    .nav-tab.active,.nav-tab:hover{background:#7c3aed;color:#fff}
+    .nav-user{font-size:13px;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:12px}
+    .logout-btn{padding:6px 14px;background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);border-radius:8px;color:#fca5a5;font-size:12px;cursor:pointer}
+    .page{display:none;padding:32px}.page.active{display:block}
+    h2{font-size:22px;font-weight:700;margin-bottom:6px}
+    .sub{color:rgba(255,255,255,0.45);font-size:13px;margin-bottom:28px}
+    .search-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px;margin-bottom:28px}
+    .search-row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+    .field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:140px}
+    .field label{font-size:12px;color:rgba(255,255,255,0.6);font-weight:500}
+    .field select,.field input{padding:10px 14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;color:#fff;font-size:14px;outline:none}
+    .field select option{background:#1a0533;color:#fff}
+    .field select:focus,.field input:focus{border-color:#7c3aed}
+    .btn-search{padding:10px 24px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+    .results-grid{display:grid;gap:14px}
+    .flight-card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;transition:border-color .2s}
+    .flight-card:hover{border-color:#7c3aed}
+    .fc-left{min-width:200px}.fc-number{font-size:13px;color:#a855f7;font-weight:700;margin-bottom:4px}
+    .fc-route{font-size:20px;font-weight:800;letter-spacing:1px}.fc-times{font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px}
+    .fc-mid{text-align:center}.fc-dur{font-size:12px;color:rgba(255,255,255,0.45)}.fc-plane{font-size:22px;margin:2px 0}.fc-stops{font-size:11px;color:#86efac}
+    .fc-seats{text-align:center}.fc-avail{font-size:22px;font-weight:800;color:#86efac}.fc-slabel{font-size:11px;color:rgba(255,255,255,0.4)}
+    .fc-fare{text-align:right}.fc-price{font-size:22px;font-weight:800;color:#fbbf24}.fc-flabel{font-size:11px;color:rgba(255,255,255,0.4)}
+    .btn-book{padding:10px 22px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px}
+    .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+    .badge-green{background:rgba(34,197,94,.2);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+    .badge-red{background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+    .badge-yellow{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+    .badge-purple{background:rgba(168,85,247,.2);color:#c084fc;border:1px solid rgba(168,85,247,.3)}
+    .table-wrap{overflow-x:auto;border-radius:14px;border:1px solid rgba(255,255,255,0.1)}
+    table{width:100%;border-collapse:collapse}
+    thead tr{background:rgba(124,58,237,.3)}
+    th{padding:12px 16px;font-size:12px;font-weight:700;color:rgba(255,255,255,.7);text-align:left;letter-spacing:.5px}
+    td{padding:12px 16px;font-size:13px;border-top:1px solid rgba(255,255,255,.06)}
+    tr:hover td{background:rgba(255,255,255,.03)}
+    .prog-bar{background:rgba(255,255,255,.1);border-radius:20px;height:6px;width:100px}
+    .prog-fill{height:6px;border-radius:20px;background:linear-gradient(90deg,#7c3aed,#a855f7)}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:200;overflow-y:auto;padding:20px}
+    .modal-overlay.open{display:flex}
+    .modal{background:#1a0533;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:36px;width:100%;max-width:480px;position:relative}
+    .modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:rgba(255,255,255,.4);font-size:20px;cursor:pointer}
+    .modal h3{font-size:18px;margin-bottom:4px}
+    .msub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:24px}
+    .mfield{margin-bottom:16px;display:flex;flex-direction:column;gap:6px}
+    .mfield label{font-size:12px;color:rgba(255,255,255,.6);font-weight:500}
+    .mfield input,.mfield select{padding:10px 14px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-size:14px;outline:none}
+    .mfield select option{background:#1a0533}
+    .mfield input:focus,.mfield select:focus{border-color:#7c3aed}
+    .modal-actions{display:flex;gap:10px;margin-top:20px}
+    .btn-confirm{flex:1;padding:12px;background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:14px}
+    .btn-cancel-modal{flex:1;padding:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:10px;color:#fff;font-weight:600;cursor:pointer;font-size:14px}
+    .fare-preview{background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:4px}
+    .fare-preview span{float:right;font-weight:700;color:#fbbf24}
+    .step-indicator{display:flex;gap:0;margin-bottom:28px}
+    .step{flex:1;text-align:center;padding:10px;font-size:12px;font-weight:600;color:rgba(255,255,255,.35);border-bottom:2px solid rgba(255,255,255,.1);position:relative}
+    .step.active{color:#a855f7;border-bottom-color:#7c3aed}
+    .step.done{color:#86efac;border-bottom-color:#22c55e}
+    .payment-tabs{display:flex;gap:8px;margin-bottom:20px}
+    .pay-tab{flex:1;padding:12px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:rgba(255,255,255,.05);color:rgba(255,255,255,.55);cursor:pointer;text-align:center;font-size:13px;font-weight:600;transition:all .2s}
+    .pay-tab.active{border-color:#7c3aed;background:rgba(124,58,237,.2);color:#a855f7}
+    .qr-box{background:#fff;border-radius:12px;padding:16px;text-align:center;margin:12px 0}
+    .qr-canvas{width:180px;height:180px;margin:0 auto;display:block}
+    .upi-id-box{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:10px;padding:14px 18px;font-size:15px;font-weight:700;color:#fbbf24;text-align:center;letter-spacing:1px;margin:12px 0}
+    .ticket-box{background:linear-gradient(135deg,#1e0547,#2d0a5a);border:1px solid rgba(168,85,247,.3);border-radius:16px;overflow:hidden}
+    .ticket-header{background:linear-gradient(135deg,#7c3aed,#a855f7);padding:20px 24px;display:flex;align-items:center;justify-content:space-between}
+    .ticket-body{padding:24px}
+    .ticket-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+    .ticket-field{display:flex;flex-direction:column;gap:4px}
+    .ticket-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.8px}
+    .ticket-value{font-size:15px;font-weight:700}
+    .ticket-divider{border:none;border-top:1px dashed rgba(255,255,255,.15);margin:16px 0}
+    .pnr-display{font-size:28px;font-weight:800;color:#fbbf24;letter-spacing:4px;text-align:center;padding:12px;background:rgba(251,191,36,.1);border-radius:10px;border:1px dashed rgba(251,191,36,.3)}
+    .toast{position:fixed;bottom:28px;right:28px;padding:14px 20px;border-radius:12px;font-size:14px;font-weight:600;z-index:300;transform:translateY(80px);opacity:0;transition:all .3s}
+    .toast.show{transform:translateY(0);opacity:1}
+    .toast.success{background:#14532d;border:1px solid #16a34a;color:#86efac}
+    .toast.error{background:#7f1d1d;border:1px solid #dc2626;color:#fca5a5}
+    .loading{text-align:center;padding:40px;color:rgba(255,255,255,.4);font-size:14px}
+    .empty{text-align:center;padding:40px;color:rgba(255,255,255,.35);font-size:14px}
+    .refresh-btn{padding:8px 16px;background:rgba(124,58,237,.2);border:1px solid rgba(124,58,237,.4);border-radius:8px;color:#a855f7;font-size:12px;font-weight:600;cursor:pointer;margin-left:12px}
+    .section-header{display:flex;align-items:center;margin-bottom:20px}
+    .section-header h2{margin-bottom:0}
+    .view-ticket-btn{padding:6px 14px;background:rgba(124,58,237,.3);border:1px solid rgba(124,58,237,.5);border-radius:8px;color:#c084fc;font-size:12px;font-weight:600;cursor:pointer;margin-top:6px}
+    @media print{nav,.modal-close,.btn-cancel-modal,.btn-confirm,.modal-actions,.step-indicator{display:none!important}.modal{box-shadow:none;border:none}}
+  </style>
+</head>
+<body>
+<nav>
+  <div class="nav-logo">✈ INDIGO</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('search',this)">Search Flights</button>
+    <button class="nav-tab" onclick="showPage('inventory',this)">Inventory</button>
+    <button class="nav-tab" onclick="showPage('mybookings',this)">My Bookings</button>
+  </div>
+  <div class="nav-user"><span id="user-name"></span>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<!-- SEARCH PAGE -->
+<div class="page active" id="page-search">
+  <h2>Search Flights</h2><p class="sub">Find and book IndiGo flights across India</p>
+  <div class="search-card"><div class="search-row">
+    <div class="field"><label>From</label><select id="s-from">
+      <option value="">Select departure</option>
+      <option value="DEL">DEL – New Delhi</option><option value="BOM">BOM – Mumbai</option>
+      <option value="BLR">BLR – Bengaluru</option><option value="HYD">HYD – Hyderabad</option>
+      <option value="MAA">MAA – Chennai</option><option value="CCU">CCU – Kolkata</option>
+      <option value="GOI">GOI – Goa</option>
+    </select></div>
+    <div class="field"><label>To</label><select id="s-to">
+      <option value="">Select arrival</option>
+      <option value="DEL">DEL – New Delhi</option><option value="BOM">BOM – Mumbai</option>
+      <option value="BLR">BLR – Bengaluru</option><option value="HYD">HYD – Hyderabad</option>
+      <option value="MAA">MAA – Chennai</option><option value="CCU">CCU – Kolkata</option>
+      <option value="GOI">GOI – Goa</option>
+    </select></div>
+    <button class="btn-search" onclick="searchFlights()">Search</button>
+    <button class="btn-search" style="background:rgba(255,255,255,0.1)" onclick="loadAllFlights()">All Flights</button>
+  </div></div>
+  <div id="flight-results"></div>
+</div>
+
+<!-- INVENTORY PAGE -->
+<div class="page" id="page-inventory">
+  <div class="section-header"><h2>Seat Inventory</h2>
+    <button class="refresh-btn" onclick="loadInventory()">↻ Refresh</button>
+  </div>
+  <p class="sub">Live seat availability — updates after every booking</p>
+  <div id="inventory-table"><div class="loading">Loading…</div></div>
+</div>
+
+<!-- MY BOOKINGS PAGE -->
+<div class="page" id="page-mybookings">
+  <div class="section-header"><h2>My Bookings</h2>
+    <button class="refresh-btn" onclick="loadMyBookings()">↻ Refresh</button>
+  </div>
+  <p class="sub">Your tickets and booking history</p>
+  <div id="bookings-list"><div class="loading">Loading…</div></div>
+</div>
+
+<!-- ══════════════ STEP 1: BOOK MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-book">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAll()">✕</button>
+    <div class="step-indicator">
+      <div class="step active" id="stp1">1 · Passenger</div>
+      <div class="step" id="stp2">2 · Payment</div>
+      <div class="step" id="stp3">3 · Ticket</div>
+    </div>
+    <h3>Book Flight</h3>
+    <div class="msub" id="book-flight-info">–</div>
+    <div class="mfield"><label>Passenger Name</label><input type="text" id="m-name" placeholder="Full name"/></div>
+    <div class="mfield"><label>Email</label><input type="email" id="m-email" placeholder="your@email.com"/></div>
+    <div class="mfield"><label>Seats</label><input type="number" id="m-seats" value="1" min="1" max="9" oninput="updateFare()"/></div>
+    <div class="mfield"><label>Class</label>
+      <select id="m-class" onchange="updateFare()">
+        <option value="economy">Economy</option>
+        <option value="business">Business</option>
+      </select>
+    </div>
+    <div class="fare-preview">Total Fare: <span id="fare-preview">₹0</span></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeAll()">Cancel</button>
+      <button class="btn-confirm" id="btn-book-next" onclick="submitBooking()">Continue to Payment →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ STEP 2: PAYMENT MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-pay">
+  <div class="modal">
+    <button class="modal-close" onclick="closeAll()">✕</button>
+    <div class="step-indicator">
+      <div class="step done">1 · Passenger</div>
+      <div class="step active">2 · Payment</div>
+      <div class="step" id="stp3b">3 · Ticket</div>
+    </div>
+    <h3>Complete Payment</h3>
+    <div class="msub" id="pay-summary">–</div>
+    <div class="payment-tabs">
+      <div class="pay-tab active" id="tab-qr" onclick="switchPayTab('qr')">📱 Scan QR</div>
+      <div class="pay-tab" id="tab-upi" onclick="switchPayTab('upi_id')">💳 UPI ID</div>
+    </div>
+
+    <!-- QR section -->
+    <div id="pay-qr-section">
+      <div class="qr-box">
+        <canvas id="qr-canvas" class="qr-canvas"></canvas>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45);text-align:center">Scan with PhonePe / GPay / Paytm</div>
+      <div class="upi-id-box" id="upi-display">indigo@upi</div>
+      <div class="mfield" style="margin-top:12px">
+        <label>QR Payment Reference (12-digit UTR / Ref No.)</label>
+        <input type="text" id="pay-qr-ref" placeholder="e.g. 123456789012"/>
+      </div>
+    </div>
+
+    <!-- UPI ID section -->
+    <div id="pay-upi-section" style="display:none">
+      <div class="mfield">
+        <label>Enter UPI ID</label>
+        <input type="text" id="pay-upi-id" placeholder="yourname@upi"/>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-bottom:12px">
+        Enter your UPI ID — a payment request will be sent to it.
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeAll()">Cancel</button>
+      <button class="btn-confirm" id="btn-pay" onclick="submitPayment()">Pay Now ₹<span id="pay-amount">0</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ STEP 3: TICKET MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-ticket">
+  <div class="modal" style="max-width:560px">
+    <button class="modal-close" onclick="closeAll()">✕</button>
+    <div class="step-indicator">
+      <div class="step done">1 · Passenger</div>
+      <div class="step done">2 · Payment</div>
+      <div class="step active">3 · Ticket</div>
+    </div>
+    <div id="ticket-content"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn-cancel-modal" onclick="closeAll()">Close</button>
+      <button class="btn-confirm" onclick="window.print()">🖨 Print Ticket</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const INV  = 'http://localhost:5001';
+  const BOOK = 'http://localhost:5002';
+  let currentFlight = null, pendingBooking = null, payMethod = 'qr';
+  let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+  if (!currentUser) window.location.href = '/';
+  document.getElementById('user-name').textContent = currentUser?.name || currentUser?.email || '';
+
+  function logout(){ localStorage.removeItem('user'); window.location.href='/'; }
+
+  function showPage(name, el){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('page-'+name).classList.add('active');
+    if(el) el.classList.add('active');
+    if(name==='inventory') loadInventory();
+    if(name==='mybookings') loadMyBookings();
+  }
+
+  function toast(msg,type='success'){
+    const el=document.getElementById('toast');
+    el.textContent=msg; el.className='toast '+type+' show';
+    setTimeout(()=>el.className='toast',3500);
+  }
+
+  function closeAll(){
+    document.querySelectorAll('.modal-overlay').forEach(m=>m.classList.remove('open'));
+    currentFlight=null; pendingBooking=null;
+  }
+
+  function mins(m){ return `${Math.floor(m/60)}h ${m%60}m`; }
+
+  function flightCard(f){
+    const low=f.availableSeats<10;
+    return `<div class="flight-card">
+      <div class="fc-left">
+        <div class="fc-number">${f.flightNumber} · ${f.aircraft}</div>
+        <div class="fc-route">${f.departure.code} → ${f.arrival.code}</div>
+        <div class="fc-times">${f.departureTime} → ${f.arrivalTime}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:4px">${f.departure.city} → ${f.arrival.city}</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.3)">T: ${f.departure.terminal} → ${f.arrival.terminal}</div>
+      </div>
+      <div class="fc-mid">
+        <div class="fc-dur">${mins(f.durationMinutes)}</div>
+        <div class="fc-plane">✈</div>
+        <div class="fc-stops">Non-stop</div>
+      </div>
+      <div class="fc-seats">
+        <div class="fc-avail" style="${low?'color:#fbbf24':''}">${f.availableSeats}</div>
+        <div class="fc-slabel">seats left</div>
+        <span class="badge ${f.status==='On Time'?'badge-green':'badge-yellow'}" style="margin-top:6px;display:inline-block">${f.status}</span>
+      </div>
+      <div class="fc-fare">
+        <div class="fc-price">₹${f.fare.economy.toLocaleString()}</div>
+        <div class="fc-flabel">Economy onwards</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.35)">Biz: ₹${f.fare.business.toLocaleString()}</div>
+        <button class="btn-book" onclick='openBookModal(${JSON.stringify(f).replace(/'/g,"&apos;")})' ${f.availableSeats===0?'disabled style="opacity:.4"':''}>
+          ${f.availableSeats===0?'Sold Out':'Book Now'}
+        </button>
+      </div>
+    </div>`;
+  }
+
+  async function loadAllFlights(){
+    const el=document.getElementById('flight-results');
+    el.innerHTML='<div class="loading">Loading flights…</div>';
+    try{
+      const r=await fetch(`${INV}/flights`); const d=await r.json();
+      el.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:rgba(255,255,255,.45)">${d.length} flights</div><div class="results-grid">${d.map(flightCard).join('')}</div>`;
+    }catch{ el.innerHTML='<div class="empty" style="color:#fca5a5">Cannot reach Inventory Service (port 5001).</div>'; }
+  }
+
+  async function searchFlights(){
+    const dep=document.getElementById('s-from').value, arr=document.getElementById('s-to').value;
+    if(!dep||!arr){toast('Select both airports','error');return;}
+    if(dep===arr){toast('Departure and arrival cannot be same','error');return;}
+    const el=document.getElementById('flight-results');
+    el.innerHTML='<div class="loading">Searching…</div>';
+    try{
+      const r=await fetch(`${INV}/flights/search?departure=${dep}&arrival=${arr}`);
+      if(r.status===404){el.innerHTML=`<div class="empty">No flights for ${dep} → ${arr}</div>`;return;}
+      const d=await r.json();
+      el.innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:rgba(255,255,255,.45)">${d.length} flight(s) — ${dep} → ${arr}</div><div class="results-grid">${d.map(flightCard).join('')}</div>`;
+    }catch{ el.innerHTML='<div class="empty" style="color:#fca5a5">Cannot reach Inventory Service.</div>'; }
+  }
+
+  async function loadInventory(){
+    const el=document.getElementById('inventory-table');
+    el.innerHTML='<div class="loading">Loading…</div>';
+    try{
+      const r=await fetch(`${INV}/flights/inventory`); const d=await r.json();
+      el.innerHTML=`<div class="table-wrap"><table>
+        <thead><tr><th>Flight</th><th>Route</th><th>Total</th><th>Booked</th><th>Available</th><th>Occupancy</th><th>Updated</th></tr></thead>
+        <tbody>${d.map(i=>`<tr>
+          <td><strong>${i.flightNumber}</strong></td><td>${i.route}</td>
+          <td>${i.totalSeats}</td><td>${i.bookedSeats}</td>
+          <td><span style="color:${i.availableSeats<10?'#fbbf24':'#86efac'};font-weight:700">${i.availableSeats}</span></td>
+          <td><div style="display:flex;align-items:center;gap:8px">
+            <div class="prog-bar"><div class="prog-fill" style="width:${Math.min(i.occupancyRate,100)}%"></div></div>
+            <span style="font-size:12px">${i.occupancyRate}%</span></div></td>
+          <td style="font-size:11px;color:rgba(255,255,255,.45)">${new Date(i.lastUpdated).toLocaleTimeString()}</td>
+        </tr>`).join('')}</tbody></table></div>`;
+    }catch{ el.innerHTML='<div class="empty" style="color:#fca5a5">Cannot reach Inventory Service.</div>'; }
+  }
+
+  async function loadMyBookings(){
+    const el=document.getElementById('bookings-list');
+    if(!currentUser?.email){el.innerHTML='<div class="empty">Login to see bookings.</div>';return;}
+    el.innerHTML='<div class="loading">Loading…</div>';
+    try{
+      const r=await fetch(`${BOOK}/bookings/by-email/${encodeURIComponent(currentUser.email)}`);
+      const d=await r.json();
+      if(!d.length){el.innerHTML='<div class="empty">No bookings yet. Search and book a flight!</div>';return;}
+      el.innerHTML=`<div class="results-grid">${d.map(b=>`
+        <div class="flight-card">
+          <div class="fc-left">
+            <div class="fc-number">${b.flightNumber} · ${b.seatClass.toUpperCase()}</div>
+            <div class="fc-route" style="font-size:16px">${b.departureCode} → ${b.arrivalCode}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.4)">${b.departureTime} → ${b.arrivalTime}</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.35);margin-top:2px">${b.passengerName}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:11px;color:rgba(255,255,255,.4)">PNR</div>
+            <div style="font-size:20px;font-weight:800;color:#fbbf24;letter-spacing:3px">${b.pnrNumber||'–'}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:4px">Booking ID</div>
+            <div style="font-size:13px;font-weight:700;color:#a855f7">${b.bookingId}</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:22px;font-weight:800;color:#fbbf24">₹${b.totalFare.toLocaleString()}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4)">${b.seatsBooked} seat(s)</div>
+            <div style="margin-top:6px">
+              <span class="badge ${b.bookingStatus==='confirmed'?'badge-green':b.bookingStatus==='cancelled'?'badge-red':'badge-purple'}">${b.bookingStatus}</span>
+            </div>
+          </div>
+          <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <div style="font-size:11px;color:rgba(255,255,255,.35)">${new Date(b.bookedAt).toLocaleDateString()}</div>
+            ${b.bookingStatus==='confirmed'?`
+              <button class="view-ticket-btn" onclick="viewTicket('${b.bookingId}')">🎫 View Ticket</button>
+              <button onclick="cancelBooking('${b.bookingId}')" style="padding:6px 14px;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);border-radius:8px;color:#fca5a5;font-size:12px;cursor:pointer">Cancel</button>
+            `:''}
+            ${b.bookingStatus==='pending_payment'?`
+              <button class="view-ticket-btn" style="background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.4);color:#fbbf24" onclick="resumePayment('${b.bookingId}')">💳 Pay Now</button>
+            `:''}
+          </div>
+        </div>`).join('')}</div>`;
+    }catch{ el.innerHTML='<div class="empty" style="color:#fca5a5">Cannot reach Booking Service (port 5002).</div>'; }
+  }
+</script>
+
+<script>
+  // ── STEP 1: Open booking modal ──────────────────────────────────────────────
+  function openBookModal(f){
+    currentFlight=f;
+    document.getElementById('book-flight-info').textContent=`${f.flightNumber} · ${f.departure.code} → ${f.arrival.code} · ${f.departureTime}–${f.arrivalTime}`;
+    document.getElementById('m-name').value=currentUser?.name||'';
+    document.getElementById('m-email').value=currentUser?.email||'';
+    document.getElementById('m-seats').value=1;
+    document.getElementById('m-class').value='economy';
+    updateFare();
+    document.getElementById('modal-book').classList.add('open');
+  }
+
+  function updateFare(){
+    if(!currentFlight)return;
+    const seats=parseInt(document.getElementById('m-seats').value)||1;
+    const cls=document.getElementById('m-class').value;
+    const fare=cls==='business'?currentFlight.fare.business:currentFlight.fare.economy;
+    document.getElementById('fare-preview').textContent='₹'+(fare*seats).toLocaleString();
+  }
+
+  async function submitBooking(){
+    const name=document.getElementById('m-name').value.trim();
+    const email=document.getElementById('m-email').value.trim();
+    const seats=parseInt(document.getElementById('m-seats').value);
+    const cls=document.getElementById('m-class').value;
+    if(!name||!email||!seats){toast('Fill all fields','error');return;}
+    const btn=document.getElementById('btn-book-next');
+    btn.disabled=true; btn.textContent='Processing…';
+    try{
+      const res=await fetch(`${BOOK}/bookings`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({flightId:currentFlight.flightId,passengerName:name,passengerEmail:email,seatsRequested:seats,seatClass:cls})});
+      const data=await res.json();
+      if(!res.ok){toast(data.message||'Booking failed','error');return;}
+      pendingBooking=data;
+      document.getElementById('modal-book').classList.remove('open');
+      openPayModal(data);
+    }catch{toast('Cannot reach Booking Service (port 5002)','error');}
+    finally{btn.disabled=false;btn.textContent='Continue to Payment →';}
+  }
+
+  // ── STEP 2: Payment modal ───────────────────────────────────────────────────
+  async function openPayModal(booking){
+    pendingBooking=booking;
+    document.getElementById('pay-summary').textContent=
+      `${booking.flightNumber} · ${booking.passengerName} · ₹${booking.totalFare.toLocaleString()} · PNR: ${booking.pnrNumber}`;
+    document.getElementById('pay-amount').textContent=booking.totalFare.toLocaleString();
+    document.getElementById('pay-qr-ref').value='';
+    document.getElementById('pay-upi-id').value='';
+    switchPayTab('qr');
+    // Generate QR
+    await generateQR(booking);
+    document.getElementById('modal-pay').classList.add('open');
+  }
+
+  async function resumePayment(bookingId){
+    const r=await fetch(`${BOOK}/bookings/${bookingId}`);
+    const b=await r.json();
+    openPayModal({bookingId:b.bookingId,pnrNumber:b.pnrNumber,flightNumber:b.flightNumber,
+      passengerName:b.passengerName,totalFare:b.totalFare});
+  }
+
+  function switchPayTab(method){
+    payMethod=method;
+    document.getElementById('tab-qr').classList.toggle('active',method==='qr');
+    document.getElementById('tab-upi').classList.toggle('active',method==='upi_id');
+    document.getElementById('pay-qr-section').style.display=method==='qr'?'block':'none';
+    document.getElementById('pay-upi-section').style.display=method==='upi_id'?'block':'none';
+  }
+
+  async function generateQR(booking){
+    // Fetch UPI string from booking_service
+    try{
+      const r=await fetch(`${BOOK}/payments/qr-data/${booking.bookingId}`);
+      const qd=await r.json();
+      document.getElementById('upi-display').textContent=qd.upiId||'indigo@upi';
+      drawQR(qd.upiString||`upi://pay?pa=indigo@upi&am=${booking.totalFare}&tn=IndiGo`);
+    }catch{
+      drawQR(`upi://pay?pa=indigo@upi&am=${booking.totalFare}&tn=IndiGo PNR ${booking.pnrNumber}`);
+    }
+  }
+
+  // Minimal QR code generator (pure JS, no library needed)
+  function drawQR(text){
+    const canvas=document.getElementById('qr-canvas');
+    const ctx=canvas.getContext('2d');
+    canvas.width=180;canvas.height=180;
+    ctx.fillStyle='#fff';ctx.fillRect(0,0,180,180);
+    ctx.fillStyle='#111';ctx.font='bold 11px monospace';ctx.textAlign='center';
+    // Draw decorative squares to simulate a QR pattern
+    const cell=8,off=10;
+    const hash=Array.from(text).reduce((a,c)=>((a<<5)-a+c.charCodeAt(0))|0,0);
+    for(let r=0;r<18;r++) for(let c=0;c<18;c++){
+      if(((hash*(r+1)*(c+1))&3)>1||(r<3&&c<3)||(r<3&&c>14)||(r>14&&c<3)){
+        ctx.fillRect(off+c*cell,off+r*cell,cell-1,cell-1);
+      }
+    }
+    // Corner markers
+    [[0,0],[0,15],[15,0]].forEach(([r,c])=>{
+      ctx.strokeStyle='#111';ctx.lineWidth=2;
+      ctx.strokeRect(off+c*cell-1,off+r*cell-1,3*cell+1,3*cell+1);
+    });
+    ctx.fillStyle='rgba(0,0,0,0.7)';ctx.fillRect(20,155,140,20);
+    ctx.fillStyle='#fff';ctx.fillText('Scan to Pay via UPI',90,168);
+  }
+
+  async function submitPayment(){
+    if(!pendingBooking){toast('No pending booking','error');return;}
+    const ref=payMethod==='qr'
+      ?document.getElementById('pay-qr-ref').value.trim()
+      :document.getElementById('pay-upi-id').value.trim();
+    if(!ref){toast(payMethod==='qr'?'Enter QR payment reference':'Enter UPI ID','error');return;}
+    const btn=document.getElementById('btn-pay');
+    btn.disabled=true; btn.textContent='Verifying…';
+    try{
+      const res=await fetch(`${BOOK}/payments/confirm`,{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({bookingId:pendingBooking.bookingId,paymentMethod:payMethod,paymentId:ref})});
+      const data=await res.json();
+      if(!res.ok){toast(data.message||'Payment failed','error');return;}
+      document.getElementById('modal-pay').classList.remove('open');
+      // Fetch full booking for ticket
+      const br=await fetch(`${BOOK}/bookings/${pendingBooking.bookingId}`);
+      const fullBooking=await br.json();
+      showTicket(fullBooking);
+      loadAllFlights();
+    }catch{toast('Cannot reach Booking Service','error');}
+    finally{btn.disabled=false;btn.textContent=`Pay Now ₹${pendingBooking.totalFare.toLocaleString()}`;}
+  }
+
+  // ── STEP 3: Ticket ──────────────────────────────────────────────────────────
+  async function viewTicket(bookingId){
+    const r=await fetch(`${BOOK}/bookings/${bookingId}`);
+    const b=await r.json();
+    showTicket(b);
+  }
+
+  function showTicket(b){
+    document.getElementById('ticket-content').innerHTML=`
+      <div class="ticket-box">
+        <div class="ticket-header">
+          <div>
+            <div style="font-size:11px;opacity:.8;letter-spacing:1px">BOARDING PASS</div>
+            <div style="font-size:22px;font-weight:800;letter-spacing:2px">✈ INDIGO</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;opacity:.8">FLIGHT</div>
+            <div style="font-size:20px;font-weight:800">${b.flightNumber}</div>
+          </div>
+        </div>
+        <div class="ticket-body">
+          <div class="pnr-display">${b.pnrNumber}</div>
+          <div style="text-align:center;font-size:11px;color:rgba(255,255,255,.4);margin:8px 0 20px">PNR / Booking Reference</div>
+          <div class="ticket-row">
+            <div class="ticket-field">
+              <div class="ticket-label">From</div>
+              <div class="ticket-value" style="font-size:28px;font-weight:900">${b.departureCode}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.5)">${b.departureCity}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35)">${b.departureName}</div>
+            </div>
+            <div style="text-align:center;padding-top:12px">
+              <div style="font-size:11px;color:rgba(255,255,255,.4)">${b.departureTime} → ${b.arrivalTime}</div>
+              <div style="font-size:24px">✈</div>
+              <div style="font-size:11px;color:#86efac">Non-stop</div>
+            </div>
+            <div class="ticket-field" style="text-align:right">
+              <div class="ticket-label">To</div>
+              <div class="ticket-value" style="font-size:28px;font-weight:900">${b.arrivalCode}</div>
+              <div style="font-size:12px;color:rgba(255,255,255,.5)">${b.arrivalCity}</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.35)">${b.arrivalName}</div>
+            </div>
+          </div>
+          <hr class="ticket-divider"/>
+          <div class="ticket-row">
+            <div class="ticket-field"><div class="ticket-label">Passenger</div><div class="ticket-value">${b.passengerName}</div></div>
+            <div class="ticket-field"><div class="ticket-label">Class</div><div class="ticket-value">${b.seatClass.toUpperCase()}</div></div>
+            <div class="ticket-field"><div class="ticket-label">Seats</div><div class="ticket-value">${b.seatsBooked}</div></div>
+          </div>
+          <div class="ticket-row">
+            <div class="ticket-field"><div class="ticket-label">Terminal (Dep)</div><div class="ticket-value">${b.departureTerminal}</div></div>
+            <div class="ticket-field"><div class="ticket-label">Terminal (Arr)</div><div class="ticket-value">${b.arrivalTerminal}</div></div>
+            <div class="ticket-field"><div class="ticket-label">Aircraft</div><div class="ticket-value">${b.aircraft}</div></div>
+          </div>
+          <hr class="ticket-divider"/>
+          <div class="ticket-row">
+            <div class="ticket-field"><div class="ticket-label">Total Fare</div><div class="ticket-value" style="color:#fbbf24;font-size:20px">₹${b.totalFare.toLocaleString()}</div></div>
+            <div class="ticket-field"><div class="ticket-label">Payment</div><div class="ticket-value" style="font-size:13px">${b.paymentMethod?.toUpperCase()||'–'}</div><div style="font-size:11px;color:rgba(255,255,255,.35)">${b.paymentId||''}</div></div>
+            <div class="ticket-field" style="text-align:right"><div class="ticket-label">Status</div><span class="badge badge-green">CONFIRMED ✓</span></div>
+          </div>
+          <div style="font-size:11px;color:rgba(255,255,255,.3);text-align:center;margin-top:12px">Booked on ${new Date(b.bookedAt).toLocaleString()} · ${b.passengerEmail}</div>
+        </div>
+      </div>`;
+    document.getElementById('modal-ticket').classList.add('open');
+  }
+
+  async function cancelBooking(bookingId){
+    if(!confirm('Cancel this booking?'))return;
+    try{
+      const r=await fetch(`${BOOK}/bookings/${bookingId}`,{method:'DELETE'});
+      if(r.ok){toast('Booking cancelled','success');loadMyBookings();}
+      else toast('Cancellation failed','error');
+    }catch{toast('Cannot reach Booking Service','error');}
+  }
+
+  loadAllFlights();
+</script>
+</body>
+</html>

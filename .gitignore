@@ -1,0 +1,32 @@
+# .NET build outputs
+bin/
+obj/
+*.user
+*.suo
+.vs/
+
+# SQLite database (runtime data)
+*.db
+*.db-shm
+*.db-wal
+
+# JSON data files (runtime data – flights/bookings persist here)
+identity_service/data/
+inventory_service/data/
+booking_service/data/
+
+# Logs
+*.log
+logs/
+
+# Environment / secrets
+.env
+appsettings.Production.json
+appsettings.Local.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/settings.json
