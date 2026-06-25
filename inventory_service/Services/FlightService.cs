@@ -1,3 +1,4 @@
+using MongoDB.Driver;
 using InventoryService.Data;
 using InventoryService.Models;
 
@@ -13,23 +14,29 @@ namespace InventoryService.Services
 
     public class FlightService : IFlightService
     {
-        private readonly JsonDbContext _db;
-        public FlightService(JsonDbContext db) => _db = db;
+        private readonly MongoDbContext _db;
+        public FlightService(MongoDbContext db) => _db = db;
 
         public async Task<List<FlightDto>> GetAllFlightsAsync()
-            => (await _db.GetFlightsAsync()).Select(ToDto).ToList();
+            => (await _db.Flights.Find(_ => true).ToListAsync()).Select(ToDto).ToList();
 
         public async Task<FlightDto?> GetFlightByIdAsync(string flightId)
         {
-            var f = await _db.GetFlightAsync(flightId);
+            var f = await _db.Flights.Find(x => x.FlightId == flightId).FirstOrDefaultAsync();
             return f == null ? null : ToDto(f);
         }
 
         public async Task<List<FlightDto>> SearchFlightsAsync(string dep, string arr)
-            => (await _db.SearchFlightsAsync(dep, arr)).Select(ToDto).ToList();
+        {
+            var filter = Builders<Flight>.Filter.And(
+                Builders<Flight>.Filter.Regex(f => f.Departure.Code, new MongoDB.Bson.BsonRegularExpression($"^{dep}$", "i")),
+                Builders<Flight>.Filter.Regex(f => f.Arrival.Code,   new MongoDB.Bson.BsonRegularExpression($"^{arr}$", "i"))
+            );
+            return (await _db.Flights.Find(filter).ToListAsync()).Select(ToDto).ToList();
+        }
 
         public async Task<List<InventoryDto>> GetInventoryAsync()
-            => (await _db.GetFlightsAsync()).Select(f => new InventoryDto
+            => (await _db.Flights.Find(_ => true).ToListAsync()).Select(f => new InventoryDto
             {
                 FlightId       = f.FlightId,
                 FlightNumber   = f.FlightNumber,

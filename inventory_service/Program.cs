@@ -10,8 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// JSON file store – singleton so all requests share the same in-memory list
-builder.Services.AddSingleton<JsonDbContext>();
+// MongoDB – singleton (MongoClient is thread-safe)
+builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<IFlightService, FlightService>();
 builder.Services.AddScoped<IInventoryService, InventoryBookingService>();
 
@@ -23,10 +23,10 @@ app.UseCors();
 app.UseAuthorization();
 app.MapControllers();
 
-// Seed flight data on first run
+// Seed 20 IndiGo flights on first run
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<JsonDbContext>();
+    var db = scope.ServiceProvider.GetRequiredService<MongoDbContext>();
     await FlightSeeder.SeedAsync(db);
 }
 
